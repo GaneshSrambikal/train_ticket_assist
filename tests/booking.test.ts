@@ -108,6 +108,30 @@ test('passenger autofill adds rows but never continues to payment', async () => 
   });
 });
 
+test('current passenger layout fills visible rows and leaves nationality and infant controls alone', async () => {
+  await withPage(async (page) => {
+    await page.setContent(`<div id="hidden" style="display:none"><input placeholder="Name"><input placeholder="Age"></div>
+      <div id="rows"></div><button id="add">+ Add Passenger/ Add Infant With Berth</button>
+      <button id="infant">+ Add Infant Without Berth</button><button id="continue">Continue</button>
+      <script>window.continues=0;window.infants=0;
+      const row='<div><input placeholder="Full Name as per Govt. ID"><input placeholder="Age"><select class="gender"><option value="">Gender</option><option value="1">Male</option><option value="2">Female</option></select><select class="nationality"><option value="IN">India</option></select><select class="berth"><option value="0">No Preference</option><option value="1">Lower</option></select></div>';
+      document.querySelector('#rows').innerHTML=row;
+      document.querySelector('#add').onclick=()=>document.querySelector('#rows').insertAdjacentHTML('beforeend',row);
+      document.querySelector('#infant').onclick=()=>window.infants++;
+      document.querySelector('#continue').onclick=()=>window.continues++;</script>`);
+    await fillPassengers(page, { ...journey, passengers: [
+      { ...journey.passengers[0], name: 'First Person' },
+      { ...journey.passengers[0], name: 'Second Person', gender: 'F', berthPreference: 'LOWER' },
+    ] });
+    assert.deepEqual(await page.locator('#rows input[placeholder^="Full Name"]').evaluateAll(els => els.map(el => (el as HTMLInputElement).value)), ['First Person', 'Second Person']);
+    assert.equal(await page.locator('.gender').nth(1).inputValue(), '2');
+    assert.equal(await page.locator('.berth').nth(1).inputValue(), '1');
+    assert.equal(await page.locator('.nationality').nth(1).inputValue(), 'IN');
+    assert.equal(await page.locator('#hidden input').first().inputValue(), '');
+    assert.equal(await page.evaluate('window.infants + window.continues'), 0);
+  });
+});
+
 test('unfinished attempt blocks another booking until explicitly reconciled', async () => {
   const directory = await mkdtemp(path.join(os.tmpdir(), 'irctc-attempt-test-'));
   try {

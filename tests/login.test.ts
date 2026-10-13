@@ -19,7 +19,7 @@ test('credentials are optional, validated, and environment pairs override the fi
   } finally { await rm(directory, { recursive: true, force: true }); }
 });
 
-test('login autofill waits for a dialog, preserves CAPTCHA and never submits', async () => {
+test('login autofill waits for a dialog and leaves visible CAPTCHA for manual submission', async () => {
   const browser = await chromium.launch({ channel: 'chrome', headless: true });
   try {
     const page = await browser.newPage();
@@ -33,7 +33,28 @@ test('login autofill waits for a dialog, preserves CAPTCHA and never submits', a
     assert.equal(await page.locator('#captcha').evaluate(el => el === document.activeElement), true);
     await page.setContent('<input placeholder="Name">');
     assert.equal(await autofillLogin(page, { username: 'fixture-user', password: 'fixture-password' }, 1000), 'already-past-login');
+    await page.setContent('<input placeholder="Full Name as per Govt. ID">');
+    assert.equal(await autofillLogin(page, { username: 'fixture-user', password: 'fixture-password' }, 1000), 'already-past-login');
     await page.setContent('<input placeholder="User Name"><input type="password" disabled>');
     assert.equal(await autofillLogin(page, { username: 'fixture-user', password: 'fixture-password' }, 1000), 'manual-required');
+  } finally { await browser.close(); }
+});
+
+test('login submits once without verification and leaves delayed OTP manual', async () => {
+  const browser = await chromium.launch({ channel: 'chrome', headless: true });
+  try {
+    const page = await browser.newPage();
+    const form = `<form><input placeholder="User Name"><input type="password"><button>Sign In</button></form>
+      <script>window.submissions=0;document.querySelector('form').onsubmit=e=>{e.preventDefault();window.submissions++;document.querySelector('form').insertAdjacentHTML('beforeend','<input autocomplete="one-time-code">')};</script>`;
+    await page.setContent(form);
+    assert.equal(await autofillLogin(page, { username: 'fixture-user', password: 'fixture-password' }, 3000), 'submitted');
+    assert.equal(await page.evaluate('window.submissions'), 1);
+    assert.equal(await page.locator('[autocomplete="one-time-code"]').inputValue(), '');
+    await page.setContent(form + `<script>setTimeout(()=>document.querySelector('form').insertAdjacentHTML('beforeend','<input placeholder="Enter OTP">'),300)</script>`);
+    assert.equal(await autofillLogin(page, { username: 'fixture-user', password: 'fixture-password' }, 3000), 'filled');
+    assert.equal(await page.evaluate('window.submissions'), 0);
+    await page.setContent(form.replace('<button>', '<button disabled>'));
+    assert.equal(await autofillLogin(page, { username: 'fixture-user', password: 'fixture-password' }, 3000), 'manual-required');
+    assert.equal(await page.evaluate('window.submissions'), 0);
   } finally { await browser.close(); }
 });

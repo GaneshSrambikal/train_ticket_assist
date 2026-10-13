@@ -76,8 +76,9 @@ npm.cmd run book -- .local/journey.json
 2. In the terminal, type `BOOK` followed by the configured train number when
    prompted (for example, `BOOK 12622`). A different response cancels this step.
 3. The assistant clicks Book Now once. If configured, login autofill enters your
-   username and password. Complete CAPTCHA, click Sign In, and handle OTP and any
-   confirmation dialogs in Chrome. It waits up to ten minutes for passenger entry.
+   username and password and clicks Sign In once if no CAPTCHA/OTP is visible.
+   Complete any verification and confirmation dialogs in Chrome. It waits up to
+   ten minutes for passenger entry.
 4. The assistant adds passenger rows and fills name, age, gender and berth
    preference. This authenticated portion has fixture tests, but has not yet
    been verified against a real logged-in booking session.
@@ -114,9 +115,12 @@ are taken. A complete `IRCTC_USERNAME`/`IRCTC_PASSWORD` environment-variable pai
 overrides the file. With neither source configured, login remains manual.
 
 Run the same `npm.cmd run book -- .local/journey.json` command. Once login appears,
-the assistant fills username/password and focuses CAPTCHA. Enter CAPTCHA and click
-Sign In yourself, then complete OTP if requested. If already at passenger entry,
-autofill is skipped. It does not submit login, solve CAPTCHA, retry invalid
+the assistant fills username/password and checks for visible CAPTCHA/OTP controls,
+allowing a short interval for delayed controls. If none appears and Sign In is
+enabled, it clicks Sign In once. Otherwise, complete verification and submit
+manually. This check applies to both quotas; General does not imply verification
+is absent. Any verification requested after submission remains manual.
+If already at passenger entry, autofill is skipped. It does not solve CAPTCHA, retry invalid
 credentials or save browser authentication between runs. On autofill failure,
 enter credentials manually; the passenger-form wait continues.
 
