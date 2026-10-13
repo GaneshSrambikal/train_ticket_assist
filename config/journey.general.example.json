@@ -1,0 +1,11 @@
+{
+  "quota": "GENERAL",
+  "from": "LTT",
+  "to": "ERS",
+  "boardingStation": "LTT",
+  "journeyDate": "2026-11-15",
+  "trainNumber": "16345",
+  "travelClass": "3A",
+  "passengers": [{ "name": "Example Passenger", "age": 30, "gender": "M", "berthPreference": "NO_PREFERENCE" }],
+  "maxFare": 5000
+}
