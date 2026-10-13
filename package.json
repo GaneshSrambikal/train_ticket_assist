@@ -1,0 +1,29 @@
+{
+  "name": "irctc-booking-assistant",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "start": "tsx src/cli.ts open",
+    "check:live": "tsx src/cli.ts check",
+    "validate": "tsx src/cli.ts validate",
+    "prepare": "tsx src/cli.ts prepare",
+    "search": "tsx src/cli.ts search",
+    "book": "tsx src/cli.ts book",
+    "resolve-booking": "tsx src/cli.ts resolve-booking",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test tests/*.test.ts"
+  },
+  "devDependencies": {
+    "@types/node": "26.6.5",
+    "tsx": "4.23.15",
+    "typescript": "7.0.2"
+  },
+  "dependencies": {
+    "playwright": "1.64.0",
+    "zod": "4.6.7"
+  }
+}
