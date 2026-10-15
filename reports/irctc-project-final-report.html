@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>IRCTC Booking Automation — Final Decision Report</title>
+<style>
+@page { size:A4; margin:0; }
+* { box-sizing:border-box; }
+body { margin:0; color:#243245; font-family:Arial,Helvetica,sans-serif; font-size:10.5pt; line-height:1.48; background:#e8edf3; }
+.sheet { width:210mm; height:297mm; padding:18mm 19mm 17mm; background:white; position:relative; break-after:page; overflow:hidden; }
+.sheet:last-child { break-after:auto; }
+.eyebrow { color:#45637d; font-size:9pt; letter-spacing:1.5px; font-weight:bold; text-transform:uppercase; }
+h1 { font-size:27pt; line-height:1.12; margin:12px 0 12px; color:#17354f; }
+h2 { font-size:15pt; color:#17354f; margin:22px 0 8px; }
+h3 { font-size:11pt; margin:15px 0 5px; color:#17354f; }
+p { margin:8px 0; }
+.meta,.small { font-size:9pt; color:#526174; }
+.decision { margin:20px 0; padding:15px 18px; background:#edf4f9; border-left:4px solid #2b668b; }
+.decision strong { display:block; color:#17354f; font-size:13pt; margin-bottom:6px; }
+blockquote { margin:11px 0; padding:10px 15px; border-left:3px solid #b1792f; background:#fcf6eb; font-size:11pt; }
+a { color:#175f91; text-decoration:underline; }
+table { width:100%; border-collapse:collapse; margin:12px 0; font-size:9.5pt; }
+th { background:#17354f; color:white; text-align:left; padding:9px; }
+td { vertical-align:top; border-bottom:1px solid #d9e2eb; padding:9px; }
+tr:nth-child(even) td { background:#f5f8fb; }
+ul,ol { padding-left:19px; margin:8px 0; }
+li { margin:6px 0; }
+.code { background:#f3f5f7; padding:11px 13px; font:9pt/1.6 Consolas,monospace; overflow-wrap:anywhere; }
+.source { padding:8px 0; border-bottom:1px solid #e1e6eb; font-size:9.5pt; }
+.url { font-size:8pt; overflow-wrap:anywhere; color:#175f91; }
+.footer { position:absolute; bottom:11mm; left:19mm; right:19mm; border-top:1px solid #d9e2eb; padding-top:7px; display:flex; justify-content:space-between; font-size:8pt; color:#64748b; }
+@media print { body { background:white; } }
+</style></head><body>
+<section class="sheet">
+<div class="eyebrow">Project assessment • Final verdict</div>
+<h1>IRCTC Booking Automation<br>Final Decision Report</h1>
+<p class="meta">15 October 2026 &nbsp;|&nbsp; Personal General &amp; Tatkal booking assistant<br>Assessment based on project tests, supplied diagnostic evidence and official documentation.</p>
+<div class="decision"><strong>Decision: discontinue the current booking-automation project.</strong>
+Do not deploy the Playwright booking flow or proceed with the proposed extension as a workaround. Retain useful local preparation and validation components. Continue actual bookings through IRCTC’s normal user interface.</div>
+<h2>Why we are stopping</h2>
+<h3>1. The intended use conflicts with published service terms</h3>
+<p>IRCTC’s general user terms explicitly state:</p>
+<blockquote>“Use of automation software and/or Scripting Software is strictly prohibited.”</blockquote>
+<p>This appears in the General section on PDF page 7. The surrounding terms describe account and ticket consequences for specified misuse. This is a service-policy reason to stop, independent of whether the code can technically be made to work. <a href="https://contents.irctc.co.in/en/Terms%20and%20conditions.pdf#page=7">[1 — official terms]</a></p>
+<h3>2. The tested browser workflow receives an access denial</h3>
+<p>Manual booking reached review in normal Chrome and Incognito, according to the user’s tests. The same manual flow in Playwright-launched Chrome failed. Diagnostics recorded HTTP 403 responses immediately before the error page. The supplied response names the protected endpoint and an Akamai error reference. See the evidence on page 2.</p>
+<h3>3. Rebuilding as an extension has no demonstrated solution</h3>
+<p>An extension would run in the normal browser, but its scripts still change the page. Chrome’s isolated script environment is not a promise that those changes are invisible. No successful extension test or IRCTC permission was established. Changing the delivery method does not resolve the published restriction. <a href="https://developer.chrome.com/docs/extensions/develop/concepts/content-scripts">[3 — Chrome documentation]</a></p>
+<p><b>Project rationale:</b> further investment would depend on an unverified technical workaround without an established permitted deployment path. The useful prototype work can be retained without pursuing automated booking.</p>
+<div class="footer"><span>IRCTC Booking Automation • Decision report</span><span>1 / 3</span></div>
+</section>
+<section class="sheet">
+<div class="eyebrow">Evidence and limits</div>
+<h1>What the tests established</h1>
+<p>The following findings distinguish observed failures from possible explanations.</p>
+<table><thead><tr><th style="width:49%">Observed evidence</th><th>Meaning for the decision</th></tr></thead><tbody>
+<tr><td>Normal Chrome and Incognito reached review during manual use.</td><td>The user has a working manual booking route.</td></tr>
+<tr><td>Manual use of Playwright-launched Chrome still reached the error page.</td><td>Autofill and automatic Continue clicks were not necessary to reproduce the failure.</td></tr>
+<tr><td>Both browser versions were <b>155.0.8059.40</b>.</td><td>A version mismatch does not explain these runs. Launch and session settings can still differ.</td></tr>
+<tr><td>Requests 470 and 471 returned <b>HTTP 403</b> in about <b>1.4 seconds</b>.</td><td>Those requests were refused, rather than simply exceeding the assistant’s wait timeout.</td></tr>
+<tr><td>The first error-route event followed about <b>20 ms</b> after the first 403.</td><td>The refusal closely preceded the visible failure; timing alone does not identify the security rule.</td></tr>
+</tbody></table>
+<h2>Access-denial evidence</h2>
+<p>The user supplied an HTML response titled <b>Access Denied</b>, identifying:</p>
+<div class="code">Endpoint: /eticketing/protected/mapps1/allLapAvlFareEnq/Y<br>Reference: 18.b7f43017.1792064155.10caa9e7<br>Error host: errors.edgesuite.net</div>
+<p>The error host is associated with Akamai infrastructure. The response supports an edge access-denial finding, but does not reveal the exact rule. <a href="https://techdocs.akamai.com/edge-hostnames/docs/edge-hn-terminology">[4 — Akamai infrastructure]</a></p>
+<h2>What we cannot claim</h2>
+<ul>
+<li>We cannot prove that a specific automation-detection rule caused this denial. The site operator’s security logs are needed.</li>
+<li>We cannot claim that every browser extension would fail, or that one would solve the issue. No extension implementation was tested.</li>
+<li>The diagnostic report omits request URLs and bodies. It cannot establish that both rejected request IDs used the same endpoint.</li>
+<li>The manual and automated-browser comparisons were user-run tests, not a simultaneous controlled experiment.</li>
+</ul>
+<p class="small">Evidence basis: supplied browser-version screenshot, error-page screenshots, pasted diagnostic JSONL and Access Denied response. These are project observations, not an IRCTC certification or official root-cause finding. Longer waits do not reverse the recorded 403 refusals.</p>
+<div class="footer"><span>IRCTC Booking Automation • Evidence assessment</span><span>2 / 3</span></div>
+</section>
+<section class="sheet">
+<div class="eyebrow">Closeout and references</div>
+<h1>Recommended next steps</h1>
+<ol>
+<li><b>Close the automated-booking scope.</b> Preserve the prototype and findings as research artifacts; do not present them as a reliable booking product.</li>
+<li><b>Use the normal booking interface.</b> Use IRCTC’s built-in passenger Master List where available. Keep reminders, local validation and preparation tools separate from website control.</li>
+<li><b>Seek clarification only if needed.</b> Submit the error reference, endpoint, failure time/timezone and browser comparison through <a href="https://equery.irctc.co.in/irctc_equery/">IRCTC eQuery [5]</a>. Disclose that the failing manual test used Playwright-launched Chrome.</li>
+<li><b>Reconsider only with new evidence.</b> An approved integration scope and successful end-to-end validation would be needed to justify restarting. A successful page load or form fill is insufficient.</li>
+</ol>
+<p>Akamai’s customer-side error translator can retrieve failure information and firewall details. Its documented log window is only 6 or 24 hours, depending on conditions; the old reference may no longer be retrievable. Support investigation does not guarantee permission or an exemption. <a href="https://techdocs.akamai.com/edge-diagnostics/docs/translate-error-string">[2]</a></p>
+<h2>Official sources</h2>
+<p class="small">Links reviewed on 15 October 2026. Sources may be updated after this assessment. The links below are clickable in this PDF.</p>
+<div class="source"><b>[1] IRCTC — Terms and Conditions, General section, PDF pages 7–8.</b><br>Primary basis for the decision: automation/scripting restriction and associated conditions.<br><a class="url" href="https://contents.irctc.co.in/en/Terms%20and%20conditions.pdf#page=7">https://contents.irctc.co.in/en/Terms%20and%20conditions.pdf#page=7</a></div>
+<div class="source"><b>[2] Akamai — Translate Error String.</b><br>Explains operator-side investigation and the limited log-availability window.<br><a class="url" href="https://techdocs.akamai.com/edge-diagnostics/docs/translate-error-string">https://techdocs.akamai.com/edge-diagnostics/docs/translate-error-string</a></div>
+<div class="source"><b>[3] Google Chrome — Content scripts.</b><br>Explains extension script isolation and interaction with web-page DOMs.<br><a class="url" href="https://developer.chrome.com/docs/extensions/develop/concepts/content-scripts">https://developer.chrome.com/docs/extensions/develop/concepts/content-scripts</a></div>
+<div class="source"><b>[4] Akamai — Edge hostname key concepts and terms.</b><br>Identifies edgesuite.net as an Akamai edge-hostname domain.<br><a class="url" href="https://techdocs.akamai.com/edge-hostnames/docs/edge-hn-terminology">https://techdocs.akamai.com/edge-hostnames/docs/edge-hn-terminology</a></div>
+<div class="source"><b>[5] IRCTC — eQuery support portal.</b><br>Official route for submitting a technical query and asking about permitted integrations.<br><a class="url" href="https://equery.irctc.co.in/irctc_equery/">https://equery.irctc.co.in/irctc_equery/</a></div>
+<p class="small">This is a project feasibility and closeout assessment. It does not establish the undisclosed security rule or constitute a legal finding. Creating this report does not delete or disable the existing code, and no support request has been sent.</p>
+<div class="footer"><span>IRCTC Booking Automation • Sources and closeout</span><span>3 / 3</span></div>
+</section>
+</body></html>
