@@ -82,10 +82,13 @@ npm.cmd run book -- .local/journey.json
 4. The assistant adds passenger rows and fills name, age, gender and berth
    preference. This authenticated portion has fixture tests, but has not yet
    been verified against a real logged-in booking session.
-5. Review every passenger, boarding station, nationality, food preference and
-   contact field. Complete any extra fields manually, then continue to IRCTC's
-   review page yourself. Verify the final total against `maxFare` and authorize
-   payment yourself. The assistant never clicks Continue or Pay.
+5. The assistant selects BHIM/UPI and leaves Chrome open. Automatic Continue is
+   temporarily disabled to investigate the session error. Click Continue yourself
+   in this same Chrome window and observe the result. If the page is still loading,
+   do not submit again. Finish any validation or dialogs manually.
+   Review every passenger, boarding station,
+   nationality, food preference and contact field. Verify the final total against
+   `maxFare` and authorize payment yourself. The assistant never clicks Pay.
 
 Waitlisted/RAC availability is blocked by default. Add `"allowWaitlist": true`
 only if you accept that outcome. Unknown/closed availability, station mismatch,
@@ -95,6 +98,29 @@ passengers; final total enforcement remains your review responsibility.
 Tatkal checks its configured opening time before Book Now; it does not poll or
 automatically wait for the opening. Live quota eligibility/booking windows remain
 authoritative.
+
+## Diagnose a browser/session error
+
+Close any running assistant, then run `npm.cmd run diagnose`. This opens the same
+Chrome channel and fresh context as the booking assistant. Perform the flow
+manually through Continue, then close that window after reaching review or the
+error page. No credentials or journey configuration are read, and no buttons
+are clicked automatically in this mode.
+
+The printed `artifacts/diagnostic-*.jsonl` file records Chrome version, launch
+switch names when Chrome exposes them (without values), and document/XHR/fetch status codes, elapsed
+timings and network error codes. Request IDs correlate events within the report.
+It excludes URLs, query strings, request/response bodies, headers, cookies and
+page contents. A successful HTTP response can still contain an application error;
+status codes alone do not establish the cause. No HAR or trace is captured.
+
+For comparison, open `chrome://version` in your normal Chrome and compare its
+version with the version printed by the diagnostic command. Check its command
+line locally against `launchSwitchNames`; do not share the whole version page
+because it contains profile paths and command-line values. Do not change launch
+flags based only on their presence. In normal Chrome's Network panel, you can
+compare the Fetch/XHR status and duration immediately after Continue; avoid
+exporting a HAR or sharing payloads, headers, cookies or full request URLs.
 
 ## Login autofill
 

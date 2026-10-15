@@ -5,6 +5,7 @@ import type { Journey } from './config.js';
 import { assertBookable, clickBookNow, type TrainSelection } from './trains.js';
 import { autofillLogin, type Credentials } from './login.js';
 import { passengerFields } from './passenger-fields.js';
+import { selectUpi } from './payment-mode.js';
 
 export function requireRealJourney(file: string, journey: Journey): void {
   if (/\.example\.json$/i.test(file) || journey.passengers.some((p) => /^(Example|Synthetic|Test)\s+(Passenger|Person)$/i.test(p.name))) {
@@ -95,8 +96,10 @@ export async function beginGuidedBooking(
   }
   console.log('Waiting for the passenger form (up to 10 minutes). Complete any remaining login, verification or station-confirmation dialogs in Chrome.');
   await fillPassengers(page, journey);
+  await selectUpi(page);
+  console.log('BHIM/UPI selected. Automatic Continue is disabled for testing. Click Continue yourself in this Chrome window.');
   console.log(`Passenger fields filled. Review boarding station (${journey.boardingStation}), contact details, nationality, food preferences and ALL passenger details in Chrome.`);
-  console.log(`Continue manually to review. Verify the final TOTAL is within Rs ${journey.maxFare}; the search fare is not a guaranteed final total.`);
-  console.log('Complete CAPTCHA/OTP and authorize payment yourself. This command never clicks Continue, Pay or retries Book Now.');
+  console.log(`Verify the final TOTAL is within Rs ${journey.maxFare}; the search fare is not a guaranteed final total.`);
+  console.log('Complete CAPTCHA/OTP and authorize payment yourself. This command never clicks Pay or retries Book Now.');
   console.log('After checking booking/transaction history, close this browser and run npm.cmd run resolve-booking before another booking attempt.');
 }

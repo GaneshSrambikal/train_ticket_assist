@@ -8,6 +8,7 @@
   },
   "scripts": {
     "start": "tsx src/cli.ts open",
+    "diagnose": "tsx src/diagnose-cli.ts",
     "check:live": "tsx src/cli.ts check",
     "validate": "tsx src/cli.ts validate",
     "prepare": "tsx src/cli.ts prepare",
